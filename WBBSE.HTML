@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WBBSE Madhyamik Result Search</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #fff;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      text-align: center;
+      width: 400px;
+      animation: fadeIn 1s ease-in-out;
+    }
+    h2 {
+      color: #333;
+      margin-bottom: 25px;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+      color: #444;
+      text-align: left;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    button {
+      background: #2575fc;
+      color: white;
+      border: none;
+      padding: 14px 22px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s ease;
+      width: 100%;
+    }
+    button:hover {
+      background: #6a11cb;
+    }
+    .footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #777;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(-20px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>WBBSE Madhyamik Result Portal</h2>
+    <form onsubmit="redirectToResult(); return false;">
+      <label for="roll">Roll</label>
+      <input type="text" id="roll" placeholder="Enter Roll" required>
+      
+      <label for="number">Number</label>
+      <input type="text" id="number" placeholder="Enter Number" required>
+      
+      <label for="dob">Date of Birth</label>
+      <input type="date" id="dob" required>
+      
+      <button type="submit">Search Result</button>
+    </form>
+    <div class="footer">Powered by Official WBBSE Portal</div>
+  </div>
+
+  <script>
+    function redirectToResult() {
+      var roll = document.getElementById("roll").value;
+      var number = document.getElementById("number").value;
+      var dob = document.getElementById("dob").value;
+      // Replace with the actual WBBSE result portal link
+      var url = "https://wbresults.nic.in/wbbse-madhyamik-result?roll=" + roll + "&number=" + number + "&dob=" + dob;
+      window.location.href = url;
+    }
+  </script>
+</body>
+</html>
