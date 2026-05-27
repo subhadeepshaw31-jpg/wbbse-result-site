@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Verification & Withdrawal Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-bill, #printable-bill * {
+                visibility: visible;
+            }
+            #printable-bill {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                box-shadow: none !important;
+                border: none !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen flex flex-col">
+
+    <header class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-md no-print">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-500/10 p-2.5 rounded-xl border border-indigo-500/20">
+                    <i class="fa-solid fa-vault text-2xl text-emerald-400"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-extrabold tracking-tight">VAULT-VERIFY</h1>
+                    <p class="text-[11px] text-indigo-300 font-medium uppercase tracking-wider">Secure Asset Management Portal</p>
+                </div>
+            </div>
+            
+            <nav class="flex bg-slate-800/60 p-1.5 rounded-xl border border-slate-700/50">
+                <button onclick="switchTab('verify-tab')" id="btn-verify-tab" class="tab-btn px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 bg-indigo-600 text-white shadow-sm flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-magnifying-glass"></i> Verification
+                </button>
+                <button onclick="switchTab('withdraw-tab')" id="btn-withdraw-tab" class="tab-btn px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 text-slate-300 hover:text-white flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-key"></i> PIN Withdrawal
+                </button>
+                <button onclick="switchTab('history-tab')" id="btn-history-tab" class="tab-btn px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 text-slate-300 hover:text-white flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-lock"></i> Admin Site (Sheet 2)
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 no-print">
+        
+        <section id="verify-tab" class="tab-content block animate-fadeIn">
+            <div class="max-w-xl mx-auto bg-white rounded-2xl shadow-xs border border-gray-100 p-6 sm:p-8">
+                <div class="text-center mb-6">
+                    <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fa-solid fa-magnifying-glass text-xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-900">Verify Asset Serial</h2>
+                    <p class="text-gray-500 text-xs mt-1">Cross-examine register records to authenticate target note parameters.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Note Number Input</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                                <i class="fa-solid fa-barcode"></i>
+                            </div>
+                            <input type="text" id="verify-input" placeholder="Enter Note Serial Number (e.g., 5MH 593944)" 
+                                class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-sm font-semibold tracking-wide">
+                        </div>
+                    </div>
+                    <button onclick="handleVerify()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-wider py-4 px-4 rounded-xl shadow-xs hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        Run Query Check
+                    </button>
+                </div>
+
+                <div id="verify-result" class="mt-6 hidden"></div>
+            </div>
+        </section>
+
+        <section id="withdraw-tab" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <div class="lg:col-span-5 bg-white rounded-2xl shadow-xs border border-gray-100 p-6">
+                    <div class="mb-5 border-b border-gray-100 pb-4">
+                        <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <i class="fa-solid fa-lock text-indigo-600"></i> Secure Withdrawal Gateway
+                        </h2>
+                        <p class="text-gray-500 text-xs mt-1">Note assets are unlocked instantly upon providing valid credentials.</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Note Serial Number</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                                    <i class="fa-solid fa-money-bill"></i>
+                                </div>
+                                <input type="text" id="withdraw-input" placeholder="e.g., 8QP 764287" 
+                                    class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500 font-semibold text-sm">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Authorization PIN</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                                    <i class="fa-solid fa-key text-amber-500"></i>
+                                </div>
+                                <input type="password" id="withdraw-pin" placeholder="••••" maxlength="4"
+                                    class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500 font-bold text-center tracking-widest text-lg">
+                            </div>
+                            <p class="text-[10px] text-gray-400 mt-1.5"><i class="fa-solid fa-circle-info"></i> Input security verification code to authorize data relocation to Sheet 2.</p>
+                        </div>
+                    </div>
+                    
+                    <div id="withdraw-alert" class="mt-4 hidden"></div>
+                </div>
+
+                <div class="lg:col-span-7">
+                    <div id="bill-container" class="hidden">
+                        <div class="flex justify-between items-center mb-3 px-1">
+                            <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Live Generated Asset Bill</span>
+                            <button onclick="window.print()" class="text-[11px] font-bold uppercase tracking-wider text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg cursor-pointer transition-all">
+                                <i class="fa-solid fa-print"></i> Print Receipt Document
+                            </button>
+                        </div>
+                        <div id="bill-receipt-content" class="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-6 sm:p-8 border-t-8 border-emerald-500 relative"></div>
+                    </div>
+                    
+                    <div id="bill-placeholder" class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center text-gray-400 flex flex-col items-center justify-center min-h-[340px]">
+                        <div class="w-12 h-12 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-receipt text-lg"></i>
+                        </div>
+                        <p class="font-bold text-sm text-gray-700">Awaiting PIN Authorization</p>
+                        <p class="text-xs text-gray-400 max-w-xs mt-1">Provide a matching note serial number and enter the correct clearance key code to generate your transactional receipt.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="history-tab" class="tab-content hidden">
+            
+            <div id="admin-lock-screen" class="max-w-md mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 text-center">
+                <div class="w-14 h-14 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-100 animate-pulse">
+                    <i class="fa-solid fa-lock-keyhole text-2xl"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-900">Admin Authentication Required</h2>
+                <p class="text-gray-500 text-xs mt-1.5 mb-6">Please input the system access management password to view Sheet 2 data registers.</p>
+                
+                <div class="space-y-4">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <input type="password" id="admin-password-input" placeholder="Enter Admin Password" 
+                            class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500 font-bold text-center tracking-widest">
+                    </div>
+                    <button onclick="authenticateAdminGate()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider py-3.5 rounded-xl transition-all cursor-pointer">
+                        Unlock Secure Register
+                    </button>
+                </div>
+            </div>
+
+            <div id="admin-authenticated-area" class="hidden bg-white rounded-2xl shadow-xs border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50/50">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <i class="fa-solid fa-database text-emerald-600"></i> Sheet 2 Database Register
+                            </h2>
+                            <span class="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-circle-check text-[8px]"></i> Admin Verified
+                            </span>
+                        </div>
+                        <p class="text-gray-500 text-xs mt-0.5">Relocated asset history logs saved locally inside this website memory storage.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="lockAdminSite()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider px-3 py-2.5 rounded-xl transition-all cursor-pointer">
+                            <i class="fa-solid fa-power-off"></i> Lock
+                        </button>
+                        <button onclick="clearLocalStorageHistory()" class="bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold uppercase tracking-wider px-3 py-2.5 rounded-xl transition-all cursor-pointer">
+                            Clear Log
+                        </button>
+                        <button onclick="downloadSheet2CSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-file-csv text-sm"></i> Download CSV Sheet
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100/80 border-b border-gray-200 text-gray-500 text-[11px] font-bold uppercase tracking-wider">
+                                <th class="px-6 py-3.5">Index No</th>
+                                <th class="px-6 py-3.5">Invoice Reference</th>
+                                <th class="px-6 py-3.5">Note Serial</th>
+                                <th class="px-6 py-3.5">Denomination</th>
+                                <th class="px-6 py-3.5">Relocation Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body" class="divide-y divide-gray-100 text-xs font-semibold text-gray-700">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="printable-bill" class="hidden bg-white p-10"></div>
+
+    <footer class="bg-white border-t border-gray-100 py-4 text-center text-[11px] text-gray-400 font-medium no-print mt-auto">
+        &copy; 2026 Secured Transaction Ledger Terminal. Operational Core Engine.
+    </footer>
+
+    <script>
+        // Data sources from uploaded document registers
+        const baseDataSource = [
+            { "VALUE": 500, "NUMBER": "5MH 593944", "STATUS": "VARIFY" },
+            { "VALUE": 500, "NUMBER": "8QP 764287", "STATUS": "VARIFY" },
+            { "VALUE": 500, "NUMBER": "5BH 924537", "STATUS": "VARIFY" },
+            { "VALUE": 500, "NUMBER": "0TF 570414", "STATUS": "VARIFY" },
+            { "VALUE": 500, "NUMBER": "1KM 655340", "STATUS": "VARIFY" },
+            { "VALUE": 500, "NUMBER": "7AP 195185", "STATUS": "VARIFY" },
+            { "VALUE": 500, "NUMBER": "6TF 061010", "STATUS": "VARIFY" },
+            { "VALUE": 500, "NUMBER": "2CK 380476", "STATUS": "VARIFY" },
+            { "VALUE": 500, "NUMBER": "5LS 976435", "STATUS": "VARIFY" },
+            { "VALUE": 200, "NUMBER": "8GD 496280", "STATUS": "VARIFY" },
+            { "VALUE": 200, "NUMBER": "9BM 376991", "STATUS": "VARIFY" },
+            { "VALUE": 200, "NUMBER": "2PN 244109", "STATUS": "VARIFY" },
+            { "VALUE": 100, "NUMBER": "2DG 375289", "STATUS": "VARIFY" },
+            { "VALUE": 100, "NUMBER": "6MG 871906", "STATUS": "VARIFY" },
+            { "VALUE": 100, "NUMBER": "4AG 859729", "STATUS": "VARIFY" },
+            { "VALUE": 100, "NUMBER": "6BN 244329", "STATUS": "VARIFY" },
+            { "VALUE": 100, "NUMBER": "3HW 084276", "STATUS": "VARIFY" },
+            { "VALUE": 50,  "NUMBER": "7NQ 495165", "STATUS": "VARIFY" },
+            { "VALUE": 50,  "NUMBER": "5VN 363717", "STATUS": "VARIFY" },
+            { "VALUE": 50,  "NUMBER": "4PU 484128", "STATUS": "VARIFY" },
+            { "VALUE": 50,  "NUMBER": "2QD 503266", "STATUS": "VARIFY" },
+            { "VALUE": 50,  "NUMBER": "6GM 422053", "STATUS": "VARIFY" },
+            { "VALUE": 20,  "NUMBER": "70L 186539", "STATUS": "VARIFY" },
+            { "VALUE": 20,  "NUMBER": "86P 768889", "STATUS": "VARIFY" },
+            { "VALUE": 20,  "NUMBER": "18T 579074", "STATUS": "VARIFY" },
+            { "VALUE": 20,  "NUMBER": "60T 009031", "STATUS": "VARIFY" },
+            { "VALUE": 20,  "NUMBER": "22P 726620", "STATUS": "VARIFY" },
+            { "VALUE": 20,  "NUMBER": "77N 655076", "STATUS": "VARIFY" },
+            { "VALUE": 20,  "NUMBER": "64L 867361", "STATUS": "VARIFY" },
+            { "VALUE": 20,  "NUMBER": "45T 366604", "STATUS": "VARIFY" },
+            { "VALUE": 20,  "NUMBER": "97T 746007", "STATUS": "VARIFY" },
+            { "VALUE": 20,  "NUMBER": "26A 716535", "STATUS": "VARIFY" },
+            { "VALUE": 20,  "NUMBER": "08Q 870450", "STATUS": "VARIFY" },
+            { "VALUE": 20,  "NUMBER": "34N 487683", "STATUS": "VARIFY" },
+            { "VALUE": 20,  "NUMBER": "45B 798615", "STATUS": "VARIFY" },
+            { "VALUE": 10,  "NUMBER": "24N 204739", "STATUS": "VARIFY" }
+
+        ];
+
+        const TARGET_PIN = "2110";
+        const ADMIN_PASSWORD = "2110";
+        let sheet2History = [];
+        let isAdminAuthenticated = false;
+
+        // App lifecycle initialization: load saved data from local web storage
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedData = localStorage.getItem('vault_sheet2_records');
+            if (savedData) {
+                sheet2History = JSON.parse(savedData);
+            }
+            updateHistoryTable();
+
+            // Set up listener for real-time automatic processing when user types 4 digits into the PIN input
+            document.getElementById('withdraw-pin').addEventListener('input', function(e) {
+                if (this.value.length === 4) {
+                    processPINWithdrawal(this.value);
+                }
+            });
+        });
+
+        // Tab routing switcher configuration
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+                btn.classList.add('text-slate-300', 'hover:text-white');
+            });
+
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.classList.remove('text-slate-300', 'hover:text-white');
+            activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+
+            // Manage Admin Authentication panels visualization states on layout changes
+            if (tabId === 'history-tab') {
+                renderAdminViewState();
+            }
+        }
+
+        // Admin Site Access Gate Management Verification
+        function authenticateAdminGate() {
+            const typedPassword = document.getElementById('admin-password-input').value;
+            if (typedPassword === ADMIN_PASSWORD) {
+                isAdminAuthenticated = true;
+                document.getElementById('admin-password-input').value = "";
+                renderAdminViewState();
+            } else {
+                alert("Access Denied: Incorrect Admin Password Entry Token.");
+                document.getElementById('admin-password-input').value = "";
+            }
+        }
+
+        function lockAdminSite() {
+            isAdminAuthenticated = false;
+            renderAdminViewState();
+        }
+
+        function renderAdminViewState() {
+            const lockView = document.getElementById('admin-lock-screen');
+            const dataView = document.getElementById('admin-authenticated-area');
+            if (isAdminAuthenticated) {
+                lockView.classList.add('hidden');
+                dataView.classList.remove('hidden');
+            } else {
+                lockView.classList.remove('hidden');
+                dataView.classList.add('hidden');
+            }
+        }
+
+        // Action Module 1: Check Database Verification Records
+        function handleVerify() {
+            const inputVal = document.getElementById('verify-input').value.trim().toUpperCase();
+            const resultBox = document.getElementById('verify-result');
+
+            if (!inputVal) {
+                alert("Please provide a note code query string first.");
+                return;
+            }
+
+            resultBox.classList.remove('hidden');
+            const foundRecord = baseDataSource.find(item => item.NUMBER.toUpperCase() === inputVal);
+            const isLoggedSheet2 = sheet2History.some(historyItem => historyItem.NUMBER.toUpperCase() === inputVal);
+
+            if (foundRecord) {
+                let currentStatus = isLoggedSheet2 ? "WITHDRAWN & RELOCATED TO SHEET 2" : "ACTIVE / VALIDATED";
+                let badgeStyle = isLoggedSheet2 ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-emerald-50 text-emerald-700 border-emerald-200";
+                
+                resultBox.innerHTML = `
+                    <div class="border rounded-2xl p-5 bg-slate-50 border-gray-200/80">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-200 pb-3.5 mb-3.5">
+                            <div>
+                                <span class="text-[10px] font-bold text-gray-400 tracking-wider uppercase">System Lookup</span>
+                                <h3 class="text-base font-bold text-gray-900 tracking-wide">${foundRecord.NUMBER}</h3>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold border ${badgeStyle}">
+                                <i class="fa-solid fa-circle-check"></i> VERIFIED
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase">Face Denomination</p>
+                                <p class="text-base font-extrabold text-indigo-900">₹${foundRecord.VALUE}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase">Current Ledger State</p>
+                                <p class="text-xs font-bold text-gray-600 mt-0.5">${currentStatus}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                resultBox.innerHTML = `
+                    <div class="border rounded-2xl p-5 bg-rose-50/50 border-rose-100 flex items-start gap-3.5">
+                        <div class="bg-rose-100 text-rose-600 p-2.5 rounded-xl border border-rose-200/60">
+                            <i class="fa-solid fa-triangle-exclamation text-base"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-rose-400 tracking-wider uppercase">System Status Lookup</span>
+                            <h3 class="text-sm font-bold text-rose-900 mt-0.5">NOT VERIFIED</h3>
+                            <p class="text-xs text-rose-700/90 mt-1">The asset number identification string <span class="font-bold underline">${inputVal}</span> does not belong to any recorded data sources.</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Action Module 2: Security Pin Verification & Withdrawal Engine
+        function processPINWithdrawal(enteredPin) {
+            const serialInput = document.getElementById('withdraw-input').value.trim().toUpperCase();
+            const alertBox = document.getElementById('withdraw-alert');
+            const pinField = document.getElementById('withdraw-pin');
+
+            const containerBill = document.getElementById('bill-container');
+            const placeholderBill = document.getElementById('bill-placeholder');
+            const contentBill = document.getElementById('bill-receipt-content');
+            const printArea = document.getElementById('printable-bill');
+
+            if (!serialInput) {
+                alertBox.classList.remove('hidden');
+                alertBox.innerHTML = `<div class="p-3 bg-rose-50 text-rose-700 rounded-xl text-xs font-bold border border-rose-100"><i class="fa-solid fa-circle-exmark mr-1"></i> Enter a note serial number before typing the PIN.</div>`;
+                pinField.value = ""; // Reset pin entry fields
+                return;
+            }
+
+            alertBox.classList.remove('hidden');
+
+            // 1. Verify credentials match targeting values
+            if (enteredPin !== TARGET_PIN) {
+                alertBox.innerHTML = `<div class="p-3 bg-rose-50 text-rose-700 rounded-xl text-xs font-bold border border-rose-100"><i class="fa-solid fa-shield-exclamation mr-1"></i> Security Code Error: Invalid Security PIN access code.</div>`;
+                pinField.value = "";
+                return;
+            }
+
+            // 2. Query target sheet row allocations
+            const targetNote = baseDataSource.find(item => item.NUMBER.toUpperCase() === serialInput);
+            if (!targetNote) {
+                alertBox.innerHTML = `<div class="p-3 bg-rose-50 text-rose-700 rounded-xl text-xs font-bold border border-rose-100"><i class="fa-solid fa-circle-question mr-1"></i> Data Error: Serial tracking index not found in Sheet 1 records.</div>`;
+                pinField.value = "";
+                return;
+            }
+
+            // 3. Confirm duplication avoidance checks
+            const isDuplicate = sheet2History.some(historyItem => historyItem.NUMBER.toUpperCase() === serialInput);
+            if (isDuplicate) {
+                alertBox.innerHTML = `<div class="p-3 bg-amber-50 text-amber-700 rounded-xl text-xs font-bold border border-amber-100"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Ledger Notice: This asset was already processed and saved inside Sheet 2.</div>`;
+                pinField.value = "";
+                return;
+            }
+
+            // 4. Run Execution Pipelines: Add entry object, update storage system states
+            const currentTime = new Date();
+            const timestampStr = currentTime.toLocaleDateString() + ' ' + currentTime.toLocaleTimeString();
+            const invoiceID = 'INV-' + Math.floor(200000 + Math.random() * 799999);
+
+            const newWithdrawalRecord = {
+                sl: sheet2History.length + 1,
+                invoice: invoiceID,
+                NUMBER: targetNote.NUMBER,
+                VALUE: targetNote.VALUE,
+                timestamp: timestampStr
+            };
+
+            // Write and persist to web data browser storage structures
+            sheet2History.push(newWithdrawalRecord);
+            localStorage.setItem('vault_sheet2_records', JSON.stringify(sheet2History));
+            
+            // Re-render spreadsheet datatable layouts
+            updateHistoryTable();
+
+            // Clear credentials entry strings
+            pinField.value = "";
+            alertBox.innerHTML = `<div class="p-3 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-bold border border-emerald-100"><i class="fa-solid fa-circle-check mr-1"></i> Verification Key Unlocked: Transfer saved to Sheet 2 memory securely.</div>`;
+
+            // 5. Render Transaction Bill Templates with Indian Rupee Currency Indicators
+            const billLayoutHTML = `
+                <div class="flex justify-between items-start border-b-2 border-dashed border-gray-100 pb-4 mb-4">
+                    <div>
+                        <h4 class="text-base font-extrabold text-gray-900 tracking-tight">ASSET LIQUIDATION STATEMENT</h4>
+                        <p class="text-[10px] text-gray-400 font-semibold tracking-wide uppercase mt-0.5">Automated Clearance Certificate</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs font-mono font-bold bg-gray-100 text-gray-700 border border-gray-200 px-2 py-1 rounded-md">${invoiceID}</span>
+                        <p class="text-[9px] font-semibold text-gray-400 mt-1.5">${timestampStr}</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="bg-gray-50/80 rounded-xl p-3.5 flex justify-between items-center border border-gray-100">
+                        <div>
+                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Relocated Serial String</span>
+                            <span class="text-sm font-extrabold text-gray-800 tracking-wide">${newWithdrawalRecord.NUMBER}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Authorization Code</span>
+                            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-sm">PIN SUCCESS</span>
+                        </div>
+                    </div>
+
+                    <div class="border border-gray-100 rounded-xl p-3.5 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs font-bold text-gray-800">Settled Release Balance</span>
+                            <span class="text-[10px] block text-gray-400 font-medium">Transferred instantly into Sheet 2 Storage</span>
+                        </div>
+                        <span class="text-xl font-black text-emerald-600">₹${newWithdrawalRecord.VALUE}.00</span>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-gray-100 text-center">
+                    <p class="text-[10px] text-gray-400 font-medium">This document certifies that the asset validation log has been modified. Saved locally via web data protocols.</p>
+                </div>
+            `;
+
+            contentBill.innerHTML = billLayoutHTML;
+            printArea.innerHTML = billLayoutHTML;
+
+            placeholderBill.classList.add('hidden');
+            containerBill.classList.remove('hidden');
+        }
+
+        // Table UI Builder Engine for Sheet 2 Log 
+        function updateHistoryTable() {
+            const tableBody = document.getElementById('history-table-body');
+            
+            if (sheet2History.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-gray-400">
+                            <div class="flex flex-col items-center justify-center">
+                                <i class="fa-solid fa-folder-open text-2xl mb-2 text-gray-300"></i>
+                                <p class="text-[11px] font-medium">Sheet 2 memory registers are empty.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let renderedRows = "";
+            sheet2History.forEach(record => {
+                renderedRows += `
+                    <tr class="hover:bg-slate-50 transition-colors border-b border-gray-100">
+                        <td class="px-6 py-3.5 font-bold text-gray-400">${record.sl}</td>
+                        <td class="px-6 py-3.5"><span class="font-mono text-[11px] font-bold bg-slate-100 border border-slate-200 text-slate-600 px-2 py-0.5 rounded-sm">${record.invoice}</span></td>
+                        <td class="px-6 py-3.5 font-bold text-gray-900">${record.NUMBER}</td>
+                        <td class="px-6 py-3.5 text-emerald-600 font-extrabold">₹${record.VALUE}</td>
+                        <td class="px-6 py-3.5 text-gray-400 font-mono text-[11px]">${record.timestamp}</td>
+                    </tr>
+                `;
+            });
+            tableBody.innerHTML = renderedRows;
+        }
+
+        // Action Module 3: Clear Sheet 2 Storage Engine 
+        function clearLocalStorageHistory() {
+            if (confirm("Are you absolute sure you want to completely erase the Sheet 2 local storage ledger? This action cannot be reversed.")) {
+                sheet2History = [];
+                localStorage.removeItem('vault_sheet2_records');
+                updateHistoryTable();
+            }
+        }
+
+        // Action Module 4: Spreadsheet Exporter (Download Local Dataset as CSV)
+        function downloadSheet2CSV() {
+            if (sheet2History.length === 0) {
+                alert("No structural log metrics found inside Sheet 2 to compile a CSV download document.");
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Index No,Invoice Reference,Note Serial,Denomination,Relocation Timestamp\n";
+
+            sheet2History.forEach(record => {
+                csvContent += `${record.sl},${record.invoice},${record.NUMBER},₹${record.VALUE},${record.timestamp}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const downloadLink = document.createElement("a");
+            downloadLink.setAttribute("href", encodedUri);
+            downloadLink.setAttribute("download", `Vault_Verify_Sheet2_Register_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(downloadLink);
+
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+    </script>
+</body>
+</html>
